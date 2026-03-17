@@ -101,7 +101,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 font-sans text-gray-900 overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-gray-900 overflow-hidden">
       {/* Header precisely matching the image */}
       <header className="bg-[#FF6B00] flex flex-col z-10 shadow-lg">
         <div className="h-6 bg-[#FF6B00]" />
@@ -126,7 +126,7 @@ export default function App() {
             <div className="flex items-baseline text-white drop-shadow-md">
               <span className="font-script text-6xl italic -rotate-6 mr-1">SAVE</span>
               <span className="text-3xl font-bold lowercase tracking-tighter">web</span>
-              <span className="text-5xl font-extrabold uppercase tracking-tighter ml-4 font-sans">MOBILE</span>
+              <span className="font-script text-6xl italic -rotate-6 ml-4">MOBILE</span>
             </div>
           </div>
 
@@ -142,8 +142,9 @@ export default function App() {
       </header>
 
       {/* Banner */}
-      <div className="bg-[#E8E8E8] py-2 px-4 border-b border-gray-300">
-        <p className="text-center font-bold text-gray-700 text-sm uppercase tracking-wider">
+      <div className="bg-[#FF6B00] py-2 px-4 border-b border-orange-700 flex items-center gap-2">
+        <div className="w-3 h-3 bg-white shadow-sm" />
+        <p className="font-bold text-white text-lg uppercase tracking-wider">
           CONSULTA MERCADORIAS POR DESCRIÇÃO
         </p>
       </div>
@@ -156,19 +157,19 @@ export default function App() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Pesquisar por código ou descrição..."
-                className="w-full bg-white border-2 border-gray-300 rounded-lg py-3 pl-12 pr-4 focus:border-[#FF6B00] focus:outline-none shadow-sm transition-all text-lg"
+                placeholder="Digite o código ou descrição"
+                className="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 focus:border-[#FF6B00] focus:outline-none shadow-inner text-xl placeholder:text-gray-400"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={28} />
             </div>
 
             {/* Results Table */}
-            <div className="flex-1 overflow-hidden border border-gray-200 rounded-lg bg-white shadow-sm flex flex-col">
-              <div className="grid grid-cols-[100px_1fr] bg-gray-100 border-b border-gray-200 font-bold text-xs uppercase tracking-wider text-gray-600">
-                <div className="p-3 border-r border-gray-200">Código</div>
-                <div className="p-3">Descrição Mercadoria</div>
+            <div className="flex-1 overflow-hidden border border-gray-400 rounded-2xl bg-white shadow-md flex flex-col">
+              <div className="grid grid-cols-[120px_1fr] bg-gradient-to-b from-[#E0E0E0] to-[#C0C0C0] border-b border-gray-400 font-bold text-xl text-gray-800">
+                <div className="p-4 border-r border-gray-400 text-center">Código</div>
+                <div className="p-4 text-center">Descrição Mercadoria</div>
               </div>
               
               <div className="flex-1 overflow-y-auto">
@@ -178,29 +179,36 @@ export default function App() {
                       key={idx}
                       onClick={() => setSelectedProduct(product)}
                       className={cn(
-                        "grid grid-cols-[100px_1fr] border-b border-gray-100 cursor-pointer hover:bg-orange-50 transition-colors active:bg-orange-100",
-                        idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                        "grid grid-cols-[120px_1fr] border-b border-gray-300 cursor-pointer transition-colors active:bg-orange-200",
+                        idx % 2 === 0 ? "bg-[#FFE4B5]" : "bg-white"
                       )}
                     >
-                      <div className="p-3 border-r border-gray-100 font-mono text-sm text-gray-600">
+                      <div className="p-3 border-r border-gray-300 font-bold text-xl text-center text-gray-900">
                         <HighlightText text={product.codigo.toString()} highlight={searchTerm} />
                       </div>
-                      <div className="p-3 text-sm font-medium">
+                      <div className="p-3 text-lg font-medium text-gray-800 uppercase">
                         <HighlightText text={product.descricao} highlight={searchTerm} />
                       </div>
                     </div>
                   ))
                 ) : searchTerm ? (
-                  <div className="p-8 text-center text-gray-500 italic">
+                  <div className="p-8 text-center text-gray-500 italic text-xl">
                     Nenhuma mercadoria encontrada.
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-gray-400 flex flex-col items-center gap-2">
-                    <Info size={48} className="opacity-20" />
-                    <p>Digite algo para iniciar a busca</p>
-                    <p className="text-xs">Base de dados: {products.length} itens</p>
+                  <div className="p-8 text-center text-gray-400 flex flex-col items-center gap-4">
+                    <Info size={64} className="opacity-10" />
+                    <p className="text-xl">Digite algo para iniciar a busca</p>
+                    <p className="text-sm">Base de dados: {products.length} itens</p>
                   </div>
                 )}
+                
+                {/* Footer text moved to the end of the list */}
+                <div className="py-4 text-center bg-[#F5F5F5] border-t border-gray-200">
+                  <p className="text-[#1B5E20] text-lg font-black italic uppercase tracking-tight font-serif drop-shadow-sm">
+                    JOÃO PAULO - FILIAL 172 CASCAVEL
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -240,13 +248,6 @@ export default function App() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 p-3 text-center">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-          JOÃO PAULO - FILIAL 172 CASCAVEL
-        </p>
-      </footer>
 
       {/* Detail Modal */}
       <AnimatePresence>
