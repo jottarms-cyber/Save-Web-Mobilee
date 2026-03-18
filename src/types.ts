@@ -1,6 +1,7 @@
 export interface Product {
   codigo: string;
   descricao: string;
+  complemento: string;
   [key: string]: any;
 }
 

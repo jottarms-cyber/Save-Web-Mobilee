@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Search, FileUp, ArrowLeft, Package, Info } from 'lucide-react';
+import React, { useState, useEffect, useDeferredValue } from 'react';
+import { Search, FileUp, ArrowLeft, Package, Info, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { motion, AnimatePresence } from 'framer-motion';
+import { get, set, del } from 'idb-keyval';
 import { Product } from './types';
 import { HighlightText } from './components/HighlightText';
 import { cn } from './lib/utils';
@@ -12,42 +13,75 @@ import initialData from './initialData.json';
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const [selectedComplemento, setSelectedComplemento] = useState<string | null>(null);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [availableComplementos, setAvailableComplementos] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'import'>('search');
   const [isImporting, setIsImporting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load data from localStorage or initialData on mount
+  const DB_KEY = 'save_web_products_v2';
+
+  // Load data from IndexedDB or initialData on mount
   useEffect(() => {
-    const savedData = localStorage.getItem('save_web_products');
-    if (savedData) {
+    const loadData = async () => {
+      setIsLoading(true);
       try {
-        const parsed = JSON.parse(savedData);
-        setProducts(parsed);
+        const savedData = await get<Product[]>(DB_KEY);
+        if (savedData && Array.isArray(savedData)) {
+          setProducts(savedData);
+        } else if (initialData && initialData.length > 0) {
+          setProducts(initialData as Product[]);
+        }
       } catch (e) {
-        console.error('Failed to parse saved products', e);
+        console.error('Failed to load products from IndexedDB', e);
+      } finally {
+        setIsLoading(false);
       }
-    } else if (initialData && initialData.length > 0) {
-      // If no local storage, use the embedded data
-      setProducts(initialData as Product[]);
-    }
+    };
+    loadData();
   }, []);
 
   // Filter products when search term changes
   useEffect(() => {
-    if (!searchTerm.trim()) {
+    if (!deferredSearchTerm.trim()) {
       setFilteredProducts([]);
+      setAvailableComplementos([]);
+      setSelectedComplemento(null);
       return;
     }
 
-    const term = searchTerm.toLowerCase();
-    const filtered = products.filter(
-      (p) =>
-        p.codigo.toString().toLowerCase().includes(term) ||
-        p.descricao.toLowerCase().includes(term)
-    );
+    const searchWords = deferredSearchTerm.toLowerCase().split(' ').filter(w => w.length > 0);
+    
+    // First pass: Filter by search words (AND logic)
+    let filtered = products.filter((p) => {
+      const combinedText = `${p.codigo} ${p.descricao} ${p.complemento || ''}`.toLowerCase();
+      return searchWords.every(word => combinedText.includes(word));
+    });
+
+    // Extract unique complementos from the search results (before applying the complemento filter)
+    const complementos = Array.from(new Set(
+      filtered
+        .map(p => p.complemento)
+        .filter((c): c is string => !!c && c.trim().length > 0)
+    )).sort();
+    
+    setAvailableComplementos(complementos);
+
+    // Second pass: Filter by selected complemento chip
+    if (selectedComplemento) {
+      filtered = filtered.filter(p => p.complemento === selectedComplemento);
+    }
+
     setFilteredProducts(filtered.slice(0, 100)); // Limit results for performance
-  }, [searchTerm, products]);
+  }, [deferredSearchTerm, products, selectedComplemento]);
+
+  // Reset selected complemento when search term changes significantly
+  useEffect(() => {
+    setSelectedComplemento(null);
+  }, [deferredSearchTerm]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,6 +100,7 @@ export default function App() {
             const mappedData = results.data.map((row: any) => ({
               codigo: row.codigo || row.CODIGO || row.Código || '',
               descricao: row.descricao || row.DESCRICAO || row.Descrição || '',
+              complemento: row.complemento || row.COMPLEMENTO || row.Complemento || '',
             })).filter(p => p.codigo || p.descricao);
             
             saveProducts(mappedData);
@@ -84,6 +119,7 @@ export default function App() {
         const mappedData = jsonData.map((row: any) => ({
           codigo: row.codigo || row.CODIGO || row.Código || '',
           descricao: row.descricao || row.DESCRICAO || row.Descrição || '',
+          complemento: row.complemento || row.COMPLEMENTO || row.Complemento || '',
         })).filter(p => p.codigo || p.descricao);
 
         saveProducts(mappedData);
@@ -92,12 +128,27 @@ export default function App() {
     }
   };
 
-  const saveProducts = (data: Product[]) => {
-    setProducts(data);
-    localStorage.setItem('save_web_products', JSON.stringify(data));
-    setIsImporting(false);
-    setActiveTab('search');
-    alert(`${data.length} mercadorias importadas com sucesso!`);
+  const saveProducts = async (data: Product[]) => {
+    try {
+      setProducts(data);
+      await set(DB_KEY, data);
+      setIsImporting(false);
+      setActiveTab('search');
+      alert(`${data.length} mercadorias importadas com sucesso!`);
+    } catch (e) {
+      console.error('Error saving to IndexedDB', e);
+      alert('Erro ao salvar os dados. Verifique o espaço disponível.');
+      setIsImporting(false);
+    }
+  };
+
+  const clearData = async () => {
+    if (window.confirm('Tem certeza que deseja apagar TODAS as mercadorias? Esta ação não pode ser desfeita.')) {
+      setProducts([]);
+      await del(DB_KEY);
+      setFilteredProducts([]);
+      alert('Base de dados limpa com sucesso!');
+    }
   };
 
   return (
@@ -157,7 +208,7 @@ export default function App() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Digite o código ou descrição"
+                placeholder=""
                 className="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 focus:border-[#FF6B00] focus:outline-none shadow-inner text-xl placeholder:text-gray-400"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -165,29 +216,72 @@ export default function App() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={28} />
             </div>
 
+            {/* Complemento Chips */}
+            {availableComplementos.length > 1 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Filtrar Complemento:</p>
+                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  <button
+                    onClick={() => setSelectedComplemento(null)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition-all border",
+                      !selectedComplemento 
+                        ? "bg-[#FF6B00] text-white border-[#FF6B00] shadow-md" 
+                        : "bg-white text-gray-600 border-gray-300"
+                    )}
+                  >
+                    TODOS
+                  </button>
+                  {availableComplementos.map((comp) => (
+                    <button
+                      key={comp}
+                      onClick={() => setSelectedComplemento(comp === selectedComplemento ? null : comp)}
+                      className={cn(
+                        "px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition-all border",
+                        selectedComplemento === comp
+                          ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                          : "bg-blue-50 text-blue-700 border-blue-200"
+                      )}
+                    >
+                      {comp}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Results Table */}
             <div className="flex-1 overflow-hidden border border-gray-400 rounded-2xl bg-white shadow-md flex flex-col">
-              <div className="grid grid-cols-[120px_1fr] bg-gradient-to-b from-[#E0E0E0] to-[#C0C0C0] border-b border-gray-400 font-bold text-xl text-gray-800">
-                <div className="p-4 border-r border-gray-400 text-center">Código</div>
-                <div className="p-4 text-center">Descrição Mercadoria</div>
+              <div className="grid grid-cols-[100px_1fr_120px] bg-gradient-to-b from-[#E0E0E0] to-[#C0C0C0] border-b border-gray-400 font-bold text-lg text-gray-800">
+                <div className="p-3 border-r border-gray-400 text-center">Código</div>
+                <div className="p-3 border-r border-gray-400 text-center">Descrição</div>
+                <div className="p-3 text-center">Complemento</div>
               </div>
               
               <div className="flex-1 overflow-y-auto">
-                {filteredProducts.length > 0 ? (
+                {isLoading ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-gray-400 gap-4">
+                    <Loader2 className="animate-spin" size={48} />
+                    <p className="text-xl font-medium">Carregando base de dados...</p>
+                  </div>
+                ) : filteredProducts.length > 0 ? (
                   filteredProducts.map((product, idx) => (
                     <div
                       key={idx}
                       onClick={() => setSelectedProduct(product)}
                       className={cn(
-                        "grid grid-cols-[120px_1fr] border-b border-gray-300 cursor-pointer transition-colors active:bg-orange-200",
+                        "grid grid-cols-[100px_1fr_120px] border-b border-gray-300 cursor-pointer transition-colors active:bg-orange-200",
                         idx % 2 === 0 ? "bg-[#FFE4B5]" : "bg-white"
                       )}
                     >
-                      <div className="p-3 border-r border-gray-300 font-bold text-xl text-center text-gray-900">
+                      <div className="p-2 border-r border-gray-300 font-bold text-lg text-center text-gray-900 flex items-center justify-center">
                         <HighlightText text={product.codigo.toString()} highlight={searchTerm} />
                       </div>
-                      <div className="p-3 text-lg font-medium text-gray-800 uppercase">
+                      <div className="p-2 border-r border-gray-300 text-base font-medium text-gray-800 uppercase flex items-center">
                         <HighlightText text={product.descricao} highlight={searchTerm} />
+                      </div>
+                      <div className="p-2 text-sm font-bold text-blue-800 uppercase flex items-center justify-center text-center">
+                        <HighlightText text={product.complemento || '-'} highlight={searchTerm} />
                       </div>
                     </div>
                   ))
@@ -235,12 +329,23 @@ export default function App() {
                 disabled={isImporting}
               />
             </label>
+            
+            <button
+              onClick={clearData}
+              disabled={products.length === 0}
+              className={cn(
+                "mt-2 text-red-600 font-bold flex items-center gap-2 p-2 rounded-lg transition-all active:scale-95",
+                products.length === 0 ? "opacity-30 grayscale cursor-not-allowed" : "hover:bg-red-50"
+              )}
+            >
+              LIMPAR BASE DE DADOS
+            </button>
 
             <div className="mt-8 text-left bg-white p-4 rounded-lg border border-gray-200 w-full max-w-sm">
               <h3 className="font-bold text-sm text-gray-600 uppercase mb-2">Instruções:</h3>
               <ul className="text-sm text-gray-500 space-y-1 list-disc pl-4">
                 <li>A planilha deve estar no formato .xlsx ou .csv</li>
-                <li>Deve conter as colunas "codigo" e "descricao"</li>
+                <li>Deve conter as colunas "codigo", "descricao" e "complemento"</li>
                 <li>A importação substituirá a base de dados atual</li>
                 <li>O app funciona totalmente offline após a importação</li>
               </ul>
@@ -295,6 +400,15 @@ export default function App() {
                       {selectedProduct.descricao}
                     </p>
                   </div>
+
+                  {selectedProduct.complemento && (
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Complemento</p>
+                      <p className="text-xl font-bold text-blue-700 uppercase">
+                        {selectedProduct.complemento}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="pt-6 border-t border-gray-100 grid grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-3 rounded-xl">
