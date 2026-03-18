@@ -297,12 +297,7 @@ export default function App() {
                   </div>
                 )}
                 
-                {/* Footer text moved to the end of the list */}
-                <div className="py-4 text-center bg-[#F5F5F5] border-t border-gray-200">
-                  <p className="text-[#1B5E20] text-lg font-black italic uppercase tracking-tight font-serif drop-shadow-sm">
-                    JOÃO PAULO - FILIAL 172 CASCAVEL
-                  </p>
-                </div>
+                {/* Footer text removed from here */}
               </div>
             </div>
           </div>
@@ -435,6 +430,13 @@ export default function App() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Fixed Footer */}
+      <footer className="bg-[#FF6B00] py-2 px-4 border-t border-orange-700 flex items-center justify-center z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <p className="font-bold text-white text-lg uppercase tracking-wider">
+          JOÃO PAULO - FILIAL 172 CASCAVEL
+        </p>
+      </footer>
     </div>
   );
 }
