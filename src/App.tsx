@@ -159,25 +159,25 @@ export default function App() {
         <div className="h-[3px] bg-white w-full opacity-90" />
         
         <div className="px-4 py-2 flex items-center justify-between bg-[#FF6B00]">
-          <div className="flex items-center gap-3">
-            {/* Custom Logo Approximation */}
-            <div className="w-16 h-16 rounded-full border-[5px] border-[#1B5E20] bg-white flex items-center justify-center relative shadow-md">
+          <div className="flex items-center gap-1 sm:gap-3">
+            {/* Custom Logo Approximation - Responsive sizes */}
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-[3px] sm:border-[5px] border-[#1B5E20] bg-white flex items-center justify-center relative shadow-md shrink-0">
               <div className="absolute inset-0 rounded-full border-2 border-white z-20" />
               <div className="relative z-10 flex flex-col items-center justify-center">
-                <span className="text-[#E64A19] text-5xl font-black italic leading-none select-none" style={{ textShadow: '1px 1px 0px white' }}>A</span>
-                <div className="absolute top-1/2 left-0 w-full flex flex-col gap-[2px] -translate-y-1/2 opacity-40">
-                  <div className="h-[2px] bg-[#1B5E20] w-full" />
-                  <div className="h-[2px] bg-[#1B5E20] w-full" />
-                  <div className="h-[2px] bg-[#1B5E20] w-full" />
+                <span className="text-[#E64A19] text-3xl sm:text-5xl font-black italic leading-none select-none" style={{ textShadow: '1px 1px 0px white' }}>A</span>
+                <div className="absolute top-1/2 left-0 w-full flex flex-col gap-[1px] sm:gap-[2px] -translate-y-1/2 opacity-40">
+                  <div className="h-[1px] sm:h-[2px] bg-[#1B5E20] w-full" />
+                  <div className="h-[1px] sm:h-[2px] bg-[#1B5E20] w-full" />
+                  <div className="h-[1px] sm:h-[2px] bg-[#1B5E20] w-full" />
                 </div>
               </div>
             </div>
 
-            {/* Stylized Text */}
+            {/* Stylized Text - Responsive sizes */}
             <div className="flex items-baseline text-white drop-shadow-md">
-              <span className="font-script text-6xl italic -rotate-6 mr-1">SAVE</span>
-              <span className="text-3xl font-bold lowercase tracking-tighter">web</span>
-              <span className="font-script text-6xl italic -rotate-6 ml-4">MOBILE</span>
+              <span className="font-script text-4xl sm:text-6xl italic -rotate-6 mr-1">SAVE</span>
+              <span className="text-xl sm:text-3xl font-bold lowercase tracking-tighter">web</span>
+              <span className="font-script text-4xl sm:text-6xl italic -rotate-6 ml-2 sm:ml-4">MOBILE</span>
             </div>
           </div>
 
@@ -192,10 +192,10 @@ export default function App() {
         <div className="h-[3px] bg-white w-full opacity-90" />
       </header>
 
-      {/* Banner */}
+      {/* Banner - Responsive text */}
       <div className="bg-[#FF6B00] py-2 px-4 border-b border-orange-700 flex items-center gap-2">
-        <div className="w-3 h-3 bg-white shadow-sm" />
-        <p className="font-bold text-white text-lg uppercase tracking-wider">
+        <div className="w-3 h-3 bg-white shadow-sm shrink-0" />
+        <p className="font-bold text-white text-sm sm:text-lg uppercase tracking-wider leading-tight">
           CONSULTA MERCADORIAS POR DESCRIÇÃO
         </p>
       </div>
@@ -204,16 +204,16 @@ export default function App() {
       <main className="flex-1 overflow-hidden flex flex-col">
         {activeTab === 'search' ? (
           <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
-            {/* Search Bar */}
+            {/* Search Bar - Responsive text and icon */}
             <div className="relative">
               <input
                 type="text"
                 placeholder=""
-                className="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 focus:border-[#FF6B00] focus:outline-none shadow-inner text-xl placeholder:text-gray-400"
+                className="w-full bg-white border border-gray-300 rounded-xl py-2 sm:py-3 pl-10 sm:pl-12 pr-4 focus:border-[#FF6B00] focus:outline-none shadow-inner text-base sm:text-xl placeholder:text-gray-400"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={28} />
+              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 sm:w-7 sm:h-7" />
             </div>
 
             {/* Complemento Chips */}
@@ -250,12 +250,12 @@ export default function App() {
               </div>
             )}
 
-            {/* Results Table */}
+            {/* Results Table - Responsive columns */}
             <div className="flex-1 overflow-hidden border border-gray-400 rounded-2xl bg-white shadow-md flex flex-col">
-              <div className="grid grid-cols-[100px_1fr_120px] bg-gradient-to-b from-[#E0E0E0] to-[#C0C0C0] border-b border-gray-400 font-bold text-lg text-gray-800">
-                <div className="p-3 border-r border-gray-400 text-center">Código</div>
-                <div className="p-3 border-r border-gray-400 text-center">Descrição</div>
-                <div className="p-3 text-center">Complemento</div>
+              <div className="grid grid-cols-[70px_1fr_90px] sm:grid-cols-[100px_1fr_120px] bg-gradient-to-b from-[#E0E0E0] to-[#C0C0C0] border-b border-gray-400 font-bold text-sm sm:text-lg text-gray-800">
+                <div className="p-2 sm:p-3 border-r border-gray-400 text-center">Código</div>
+                <div className="p-2 sm:p-3 border-r border-gray-400 text-center">Descrição</div>
+                <div className="p-2 sm:p-3 text-center">Compl.</div>
               </div>
               
               <div className="flex-1 overflow-y-auto">
@@ -270,17 +270,17 @@ export default function App() {
                       key={idx}
                       onClick={() => setSelectedProduct(product)}
                       className={cn(
-                        "grid grid-cols-[100px_1fr_120px] border-b border-gray-300 cursor-pointer transition-colors active:bg-orange-200",
+                        "grid grid-cols-[70px_1fr_90px] sm:grid-cols-[100px_1fr_120px] border-b border-gray-300 cursor-pointer transition-colors active:bg-orange-200",
                         idx % 2 === 0 ? "bg-[#FFE4B5]" : "bg-white"
                       )}
                     >
-                      <div className="p-2 border-r border-gray-300 font-bold text-lg text-center text-gray-900 flex items-center justify-center">
+                      <div className="p-2 border-r border-gray-300 font-bold text-sm sm:text-lg text-center text-gray-900 flex items-center justify-center">
                         <HighlightText text={product.codigo.toString()} highlight={searchTerm} />
                       </div>
-                      <div className="p-2 border-r border-gray-300 text-base font-medium text-gray-800 uppercase flex items-center">
+                      <div className="p-2 border-r border-gray-300 text-xs sm:text-base font-medium text-gray-800 uppercase flex items-center overflow-hidden">
                         <HighlightText text={product.descricao} highlight={searchTerm} />
                       </div>
-                      <div className="p-2 text-sm font-bold text-blue-800 uppercase flex items-center justify-center text-center">
+                      <div className="p-2 text-[10px] sm:text-sm font-bold text-blue-800 uppercase flex items-center justify-center text-center">
                         <HighlightText text={product.complemento || '-'} highlight={searchTerm} />
                       </div>
                     </div>
@@ -431,9 +431,9 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Fixed Footer */}
+      {/* Fixed Footer - Responsive text */}
       <footer className="bg-[#FF6B00] py-2 px-4 border-t border-orange-700 flex items-center justify-center z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-        <p className="font-bold text-white text-lg uppercase tracking-wider">
+        <p className="font-bold text-white text-sm sm:text-lg uppercase tracking-wider text-center">
           JOÃO PAULO - FILIAL 172 CASCAVEL
         </p>
       </footer>
